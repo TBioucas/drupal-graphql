@@ -19,6 +19,8 @@
         "drupal/core-composer-scaffold": "^9",
         "drupal/core-project-message": "^9",
         "drupal/core-recommended": "^9",
+        "drupal/graphql": "^3.1",
+        "drupal/graphql_metatag": "^1.0@alpha",
         "drush/drush": "^10.3"
     },
     "require-dev": {
