@@ -1,0 +1,38 @@
+default:
+  suites:
+    pages:
+      paths: ['%paths.base%/features/pages']
+      contexts:
+        - FeatureContext
+        - Drupal\DrupalExtension\Context\DrupalContext
+        - Drupal\DrupalExtension\Context\MinkContext
+        - Drupal\DrupalExtension\Context\MessageContext
+        - Drupal\DrupalExtension\Context\DrushContext
+  extensions:
+    Bex\Behat\ScreenshotExtension:
+      screenshot_taking_mode: all_scenarios
+      image_drivers:
+        local:
+          screenshot_directory: '%paths.base%/behat-screenshots'
+    Behat\MinkExtension:
+      # Default configuration has this commented out so it can be overidden.
+      base_url: http://graphql.lndo.site
+      browser_name: chrome
+      sessions:
+        default:
+          goutte:
+            guzzle_parameters:
+              verify: false
+        javascript:
+          selenium2:
+            wd_host: http://chromedriver:4444/wd/hub
+            capabilities:
+              browser: 'chrome'
+              version: '*'
+    Drupal\DrupalExtension:
+      blackbox: ~
+      api_driver: 'drupal'
+      drupal:
+        drupal_root: '%paths.base%/web'
+      region_map:
+        content: '#content'

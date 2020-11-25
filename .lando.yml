@@ -1,0 +1,99 @@
+name: graphql
+recipe: drupal8
+services:
+  chromedriver:
+    type: compose
+    services:
+      image: robcherry/docker-chromedriver:latest
+      expose:
+        - '4444'
+      environment:
+        CHROMEDRIVER_WHITELISTED_IPS: ''
+        CHROMEDRIVER_URL_BASE: '/wd/hub'
+      security_opt:
+        - seccomp:unconfined
+      command: ['/usr/local/bin/supervisord', '-c', '/etc/supervisord.conf']
+      volumes:
+        - '/dev/shm:/dev/shm'
+  appserver:
+    webroot: web
+    type: php:7.4
+    via: apache
+    xdebug: true
+    config:
+      php: .vscode/php.ini
+    run:
+      # Run composer install
+      # - cd $LANDO_MOUNT && composer install
+      # Set local settings file
+      # - cd $LANDO_MOUNT && cp settings.lando.php web/sites/default/settings.local.php
+      # Set local develpment settings file
+      # - cd $LANDO_MOUNT && cp settings.development.php web/sites/default/settings.development.php
+    overrides:
+      environment:
+        MINK_DRIVER_ARGS: '["chrome", null, "http://chromedriver:4444/wd/hub"]'
+        MINK_DRIVER_ARGS_WEBDRIVER: '["chrome", null, "http://chromedriver:4444/wd/hub"]'
+        MINK_DRIVER_CLASS: 'Drupal\FunctionalJavascriptTests\DrupalSelenium2Driver'
+        BEHAT_PARAMS: >-
+          {"extensions" : {"Behat\\MinkExtension" : {"base_url" :
+          "http://graphql.lndo.site"}, "Drupal\\DrupalExtension" : {"drush" :   {  "root":
+          "/app/web" }}}}
+        PHP_IDE_CONFIG: serverName=appserver
+  mailhog:
+    type: mailhog
+    hogfrom:
+      - appserver
+  database:
+    type: 'mariadb:10.4'
+    portforward: 3007
+proxy:
+  mailhog:
+    - mail.graphql.lndo.site
+tooling:
+  composer:
+    service: appserver
+    description: Run Composer installed with Lando
+    cmd: /usr/local/bin/composer
+  phpcs:
+    service: appserver
+    description: Run PHPCS commands
+    cmd: /app/bin/phpcs
+  phpcbf:
+    service: appserver
+    description: Run PHPCBF commands
+    cmd: /app/bin/phpcbf
+  phpunit:
+    service: appserver
+    description: Run PHPUnit commands
+    cmd: /app/bin/phpunit
+  phpunitdebug:
+    service: appserver
+    description: Run PHPUnit debug commands
+    cmd: php -d xdebug.remote_port=9000 /app/bin/phpunit
+  behat:
+    service: appserver
+    description: Run Behat commands
+    cmd: /app/bin/behat --snippets-for CLI
+  drush:
+    service: appserver
+    description: Run Drush commands
+    cmd: /app/bin/drush
+  drupal:
+    service: appserver
+    description: Run Drupal Console commands
+    cmd: /app/bin/drupal
+  check:
+    service: appserver
+    description: Run Drupal-Check commands
+    cmd: /app/bin/drupal-check
+  twigcs:
+    service: appserver
+    description: Run Twigcs commands
+    cmd: /app/bin/twigcs
+  grumphp:
+    service: appserver
+    description: Run Grumphp commands
+    cmd: /app/bin/grumphp
+  chromedriver:
+    service: chromedriver
+    description: Local testing with chromedriver
